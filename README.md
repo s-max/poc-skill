@@ -45,6 +45,26 @@ The installer:
 3. Configures Granola MCP globally
 4. Sets up project-level hooks in your POC directory
 
+## Repository Structure
+
+```
+├── skill/              # Source files (edit these)
+│   ├── SKILL.md
+│   ├── scripts/
+│   ├── hooks/
+│   └── references/
+├── build.sh            # Packages skill → poc.skill + install-poc.sh
+├── poc.skill           # Packaged skill (auto-generated)
+└── install-poc.sh      # Standalone installer (auto-generated)
+```
+
+**Note:** `poc.skill` and `install-poc.sh` are auto-rebuilt on commit when `skill/` changes (via pre-commit hook).
+
+To set up hooks after cloning:
+```bash
+git config core.hooksPath .githooks
+```
+
 ## License
 
 MIT

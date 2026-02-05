@@ -1,0 +1,14 @@
+#!/bin/bash
+# Pre-commit hook: rebuild packaged files if skill sources changed
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Check if any skill source files are staged
+if git diff --cached --name-only | grep -q "^skill/"; then
+  echo "Skill sources changed, rebuilding packages..."
+  "$REPO_ROOT/build.sh"
+
+  # Stage the rebuilt files
+  git add "$REPO_ROOT/poc.skill" "$REPO_ROOT/install-poc.sh"
+  echo "Packaged files updated and staged."
+fi
