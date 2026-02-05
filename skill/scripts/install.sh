@@ -140,26 +140,42 @@ echo ""
 chmod +x "$SKILL_DIR/hooks/"*.sh
 chmod +x "$SKILL_DIR/scripts/"*.sh
 
-# Check/install required plugin: frontend-design
-echo "Checking required plugins..."
-if claude plugin list 2>/dev/null | grep -q "frontend-design"; then
-  echo "frontend-design plugin: installed"
-else
-  echo "Installing frontend-design plugin..."
-  claude plugin install frontend-design@claude-plugins-official
-  echo "frontend-design plugin: installed"
-fi
+# Find claude CLI
+CLAUDE_CLI=""
+for candidate in "claude" "$HOME/.claude/local/claude" "/usr/local/bin/claude" "$HOME/.local/bin/claude"; do
+  if command -v "$candidate" &>/dev/null || [[ -x "$candidate" ]]; then
+    CLAUDE_CLI="$candidate"
+    break
+  fi
+done
 
-# Configure Granola MCP globally (if not already configured)
-echo "Checking Granola MCP configuration..."
-CLAUDE_CONFIG="$HOME/.claude.json"
-
-if [[ -f "$CLAUDE_CONFIG" ]] && jq -e '.mcpServers.granola' "$CLAUDE_CONFIG" > /dev/null 2>&1; then
-  echo "Granola MCP already configured globally"
+if [[ -z "$CLAUDE_CLI" ]]; then
+  echo ""
+  echo "NOTE: 'claude' CLI not found in PATH."
+  echo "After installation, run these commands manually in Claude Code:"
+  echo "  1. Install plugin: /install-plugin frontend-design@claude-plugins-official"
+  echo "  2. Add Granola MCP: /mcp (then add granola)"
+  echo ""
 else
-  echo "Adding Granola MCP to global config..."
-  claude mcp add granola --transport http https://mcp.granola.ai/mcp
-  echo "Granola MCP added. Run /mcp in Claude to authenticate via browser."
+  # Check/install required plugin: frontend-design
+  echo "Checking required plugins..."
+  if "$CLAUDE_CLI" plugin list 2>/dev/null | grep -q "frontend-design"; then
+    echo "frontend-design plugin: installed"
+  else
+    echo "Installing frontend-design plugin..."
+    "$CLAUDE_CLI" plugin install frontend-design@claude-plugins-official || echo "  (install manually: /install-plugin frontend-design@claude-plugins-official)"
+  fi
+
+  # Configure Granola MCP globally (if not already configured)
+  echo "Checking Granola MCP configuration..."
+  CLAUDE_CONFIG="$HOME/.claude.json"
+
+  if [[ -f "$CLAUDE_CONFIG" ]] && jq -e '.mcpServers.granola' "$CLAUDE_CONFIG" > /dev/null 2>&1; then
+    echo "Granola MCP already configured globally"
+  else
+    echo "Adding Granola MCP to global config..."
+    "$CLAUDE_CLI" mcp add granola --transport http https://mcp.granola.ai/mcp || echo "  (add manually: run /mcp in Claude Code)"
+  fi
 fi
 
 echo ""
