@@ -16,9 +16,10 @@ Generate branded proof-of-concepts from Granola meeting transcripts.
 curl -fsSL https://raw.githubusercontent.com/s-max/poc-skill/main/install-poc.sh | bash
 ```
 
-Then in Claude Code:
-1. Run `/mcp` and authenticate Granola (required each session)
-2. Try `/poc`
+Then open Claude Code and run `/poc`. First run will:
+1. Auto-install `frontend-design` plugin
+2. Auto-configure Granola MCP
+3. Prompt you to authenticate Granola via `/mcp` (required each session)
 
 ## Usage
 
@@ -41,9 +42,12 @@ Then in Claude Code:
 
 The installer:
 1. Extracts skill files to `~/.claude/skills/poc`
-2. Installs `frontend-design` plugin (for UI generation)
-3. Configures Granola MCP globally
-4. Sets up project-level hooks in your POC directory
+2. Creates config at `~/.config/poc/config.json`
+3. Sets up project-level hooks in your POC directory
+
+On first `/poc` run (inside Claude Code):
+- Auto-installs `frontend-design` plugin
+- Auto-configures Granola MCP
 
 ## Repository Structure
 

@@ -140,51 +140,10 @@ echo ""
 chmod +x "$SKILL_DIR/hooks/"*.sh
 chmod +x "$SKILL_DIR/scripts/"*.sh
 
-# Find claude CLI
-CLAUDE_CLI=""
-for candidate in "claude" "$HOME/.claude/local/claude" "/usr/local/bin/claude" "$HOME/.local/bin/claude"; do
-  if command -v "$candidate" &>/dev/null || [[ -x "$candidate" ]]; then
-    CLAUDE_CLI="$candidate"
-    break
-  fi
-done
-
-if [[ -z "$CLAUDE_CLI" ]]; then
-  echo ""
-  echo "NOTE: 'claude' CLI not found in PATH."
-  echo "After installation, run these commands manually in Claude Code:"
-  echo "  1. Install plugin: /install-plugin frontend-design@claude-plugins-official"
-  echo "  2. Add Granola MCP: /mcp (then add granola)"
-  echo ""
-else
-  # Check/install required plugin: frontend-design
-  echo "Checking required plugins..."
-  if "$CLAUDE_CLI" plugin list 2>/dev/null | grep -q "frontend-design"; then
-    echo "frontend-design plugin: installed"
-  else
-    echo "Installing frontend-design plugin..."
-    "$CLAUDE_CLI" plugin install frontend-design@claude-plugins-official || echo "  (install manually: /install-plugin frontend-design@claude-plugins-official)"
-  fi
-
-  # Configure Granola MCP globally (if not already configured)
-  echo "Checking Granola MCP configuration..."
-  CLAUDE_CONFIG="$HOME/.claude.json"
-
-  if [[ -f "$CLAUDE_CONFIG" ]] && jq -e '.mcpServers.granola' "$CLAUDE_CONFIG" > /dev/null 2>&1; then
-    echo "Granola MCP already configured globally"
-  else
-    echo "Adding Granola MCP to global config..."
-    "$CLAUDE_CLI" mcp add granola --transport http https://mcp.granola.ai/mcp || echo "  (add manually: run /mcp in Claude Code)"
-  fi
-fi
-
 echo ""
 echo "Installation complete!"
 echo ""
 echo "Hooks will auto-apply when working in: $POC_ROOT"
 echo ""
-echo "IMPORTANT: Run /mcp in Claude Code to authenticate Granola (required each session)"
-echo ""
-echo "To test, run:"
-echo "  cd $POC_ROOT"
-echo "  source $SKILL_DIR/scripts/load-config.sh"
+echo "Next: Open Claude Code and run /poc"
+echo "      (First run will auto-configure plugins and Granola MCP)"

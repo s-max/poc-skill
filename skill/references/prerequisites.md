@@ -16,12 +16,14 @@
 |------|---------|-----------------|
 | `supabase` | Backend (auth, data) | `brew install supabase/tap/supabase` |
 
-## Required Integrations
+## Required Integrations (auto-configured on first /poc run)
 
-| Integration | Purpose | Setup |
-|-------------|---------|-------|
-| Granola MCP | Meeting transcripts | Run `/mcp` to authenticate |
-| `frontend-design` skill | UI generation | Must be installed |
+| Integration | Purpose | Auto-Setup |
+|-------------|---------|------------|
+| `frontend-design` plugin | UI generation | `claude plugin install frontend-design@claude-plugins-official` |
+| Granola MCP | Meeting transcripts | `claude mcp add granola --transport http https://mcp.granola.ai/mcp` |
+
+**Note:** Granola requires browser auth via `/mcp` each session.
 
 ## Verification Commands
 

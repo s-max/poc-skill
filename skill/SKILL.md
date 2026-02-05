@@ -28,11 +28,25 @@ Creates config at `~/.config/poc/config.json` and sets up project permissions.
 
 ### Step 0: Initialize
 
-Verify prerequisites (see [references/prerequisites.md](references/prerequisites.md)).
+**First-use setup** (only needed once):
 
-**Check Granola auth first** - run `mcp__granola__list_meetings`. If auth error, tell user to run `/mcp` and re-authenticate via browser.
+1. Check `frontend-design` plugin:
+   ```bash
+   claude plugin list | grep frontend-design
+   ```
+   If missing: `claude plugin install frontend-design@claude-plugins-official`
 
-Load config:
+2. Check Granola MCP configured:
+   ```bash
+   cat ~/.claude.json | jq '.mcpServers.granola'
+   ```
+   If missing: `claude mcp add granola --transport http https://mcp.granola.ai/mcp`
+
+3. Test Granola auth - run `mcp__granola__list_meetings`
+   - If auth error: tell user to run `/mcp`, select Granola, authenticate in browser
+   - Auth expires between sessions - user may need to re-run `/mcp`
+
+**Every run:** Load config:
 
 ```bash
 source <skill-dir>/scripts/load-config.sh
