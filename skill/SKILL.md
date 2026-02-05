@@ -4,10 +4,11 @@ description: >-
   Generate a proof-of-concept from a client call transcript via Granola MCP.
   Use when the user says "/poc", "build poc from call", "create demo for client",
   or wants to turn a meeting into a working prototype.
-  Modes: (1) "/poc" or "/poc [client]" - extract idea from meeting,
-  (2) "/poc ideas" or "/poc [client] brainstorm" - get 3 POC ideas first,
-  (3) "/poc [client] [idea description]" - build specific idea with meeting context
-  (e.g., "/poc acme Innovation Radar - market intelligence dashboard").
+  Modes: (1) "/poc" - list recent meetings and pick one,
+  (2) "/poc latest" - use most recent meeting,
+  (3) "/poc [client]" - search for client meeting,
+  (4) "/poc ideas" or "/poc [client] brainstorm" - get 3 POC ideas first,
+  (5) "/poc [client] [idea description]" - build specific idea with meeting context.
 ---
 
 # POC Generator
@@ -42,36 +43,52 @@ Creates config at `~/.config/poc/config.json` and sets up project permissions.
    ```
    If missing: `claude mcp add granola --transport http https://mcp.granola.ai/mcp`
 
-3. Test Granola auth - run `mcp__granola__list_meetings`
-   - If auth error: tell user to run `/mcp`, select Granola, authenticate in browser
-   - Auth expires between sessions - user may need to re-run `/mcp`
+**Every run:**
 
-**Every run:** Load config:
+1. Load config:
+   ```bash
+   source <skill-dir>/scripts/load-config.sh
+   ```
+   Exports: `POC_SKILL_DIR`, `POC_ROOT`, `POC_VERCEL_SCOPE`, `POC_ALIAS_DOMAIN`.
 
-```bash
-source <skill-dir>/scripts/load-config.sh
-```
+2. Fetch meetings list (doubles as auth check):
+   ```
+   mcp__granola__list_meetings
+   ```
+   If auth error: tell user to run `/mcp`, select Granola, authenticate in browser.
 
-Exports: `POC_SKILL_DIR`, `POC_ROOT`, `POC_VERCEL_SCOPE`, `POC_ALIAS_DOMAIN`.
+3. Parse input to determine mode:
 
-Parse input to determine mode:
-
-| Pattern | Mode |
-|---------|------|
-| Empty or single word | Meeting-driven |
-| Contains "ideas" or "brainstorm" | Ideation (present 3 options) |
-| `<client> <description>` | Direct idea |
+| Input | Mode | Meeting Selection |
+|-------|------|-------------------|
+| (empty) | Interactive | Show meeting list, ask user to pick |
+| `latest` | Auto-select | Use most recent meeting |
+| `<client>` | Search | Filter meetings by client name |
+| `ideas` or `<client> brainstorm` | Ideation | Present 3 POC concepts first |
+| `<client> <description>` | Direct idea | Use specific idea + meeting context |
 
 ### Step 1: Get Meeting
 
+Based on mode from Step 0:
+
+**Interactive (`/poc`):**
+- Display meetings from `list_meetings` as numbered list (title, date, attendees)
+- Ask user: "Which meeting?" (or use AskUserQuestion with options)
+- User selects by number or name
+
+**Auto-select (`/poc latest`):**
+- Use first/most recent meeting from list
+
+**Search (`/poc <client>`):**
+- Filter meeting list by client name in title/attendees
+- If single match: use it. If multiple: show filtered list and ask.
+
+Then fetch meeting details:
 ```
-mcp__granola__list_meetings              # Scan meetings: ID, title, date, attendees
-mcp__granola__get_meetings               # Search content: ID, title, date, attendees, private/enhanced notes
+mcp__granola__get_meetings               # Notes, attendees, enhanced content
 mcp__granola__get_meeting_transcript     # Raw transcript (paid tiers only)
-mcp__granola__query_granola_meetings     # Conversational queries about meetings
 ```
 
-Workflow: Use `list_meetings` to find client meeting by title/attendee, then `get_meetings` for notes, `get_meeting_transcript` for verbatim quotes.
 Always fetch meeting context for terminology, stakeholders, pain points.
 
 ### Step 2: Determine POC Concept
@@ -164,9 +181,10 @@ See [references/error-handling.md](references/error-handling.md).
 ## Examples
 
 ```bash
-/poc                    # Extract idea from recent meeting
-/poc acme               # Search Acme meeting, extract idea
-/poc ideas              # 3 ideas from recent meeting
+/poc                    # List recent meetings, pick one interactively
+/poc latest             # Use most recent meeting automatically
+/poc acme               # Search for Acme meeting
+/poc ideas              # 3 POC ideas from selected meeting
 /poc acme brainstorm    # 3 ideas from Acme meeting
 /poc acme Innovation Radar - market intelligence dashboard
 ```
